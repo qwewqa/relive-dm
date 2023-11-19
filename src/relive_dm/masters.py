@@ -63,6 +63,16 @@ def merge_all_masters(base_paths: list[Path], out_path: Path):
         raise ValueError("Must specify at least one base path.")
     primary, *others = [get_masters_path(base_path) for base_path in base_paths]
     for master_path in primary.glob("*.luac"):
+        out_file = out_path / f"{master_path.stem}.json"
+        if out_file.exists():
+            lua_paths = [master_path] + [
+                other / master_path.relative_to(primary) for other in others
+            ]
+            if out_file.stat().st_mtime > max(
+                p.stat().st_mtime for p in lua_paths if p.exists()
+            ):
+                logger.debug(f"Skipping {master_path} since it is up to date.")
+                continue
         data = cast(MasterDict, read_lua_table(master_path.read_bytes()))
         for other in others:
             other_path = other / master_path.name
@@ -72,8 +82,9 @@ def merge_all_masters(base_paths: list[Path], out_path: Path):
                 )
         data = convert_dicts_to_lists(data)
         out_path.mkdir(parents=True, exist_ok=True)
-        (out_path / f"{master_path.stem}.json").write_text(
+        out_file.write_text(
             json.dumps(data, ensure_ascii=False, indent=4, sort_keys=True),
             encoding="utf-8",
         )
         logger.info(f"Updated {master_path}")
+    logger.info(f"Merged masters to {out_path}")
