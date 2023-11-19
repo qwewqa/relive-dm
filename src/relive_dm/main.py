@@ -9,9 +9,9 @@ app = typer.Typer()
 
 
 @app.command()
-def download(path: Path = Path("assets")):
+def download(path: Path = Path("assets"), patch: bool = True, dlc: bool = True):
     logging.basicConfig(level=logging.INFO)
-    download_all(path)
+    download_all(path, patch=patch, dlc=dlc)
 
 
 @app.command()

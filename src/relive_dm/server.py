@@ -30,9 +30,12 @@ servers = [
 ]
 
 
-def download_all(path: Path):
+def download_all(path: Path, patch: bool = True, dlc: bool = True):
     for server in servers:
         logger.info(f"Downloading {server.name}")
-        download_patch(server.entry_url, server.lang_id, path / server.name)
-        download_dlc(server.entry_url, server.lang_id, path / server.name)
-    merge_all_masters([path / server.name for server in servers], path / "masters")
+        if patch:
+            download_patch(server.entry_url, server.lang_id, path / server.name)
+        if dlc:
+            download_dlc(server.entry_url, server.lang_id, path / server.name)
+    if patch:
+        merge_all_masters([path / server.name for server in servers], path / "masters")
