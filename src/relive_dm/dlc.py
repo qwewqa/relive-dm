@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def download_dlc(entry_url: str, lang_id: int, base_path: Path):
-    config = load_config(base_path)
+    config = load_dlc_config(base_path)
 
     info = get_dlc_info(entry_url, lang_id)
     if info.dlc_ver <= config.version:
@@ -33,7 +33,7 @@ def download_dlc(entry_url: str, lang_id: int, base_path: Path):
     download_zips(urls, base_path, max_download_threads=16)
     logger.info(f"Downloaded {len(urls)} dlc entries")
 
-    save_config(
+    save_dlc_config(
         base_path,
         DlcConfig(version=download_list.dlc_ver, downloaded=download_list.dlc_list),
     )
@@ -51,7 +51,7 @@ def download_dlc_list(info: DlcInfo, lang_id: int) -> DlcDownloadList:
     return DlcDownloadList.model_validate(msgpack.unpackb(r.content))
 
 
-def load_config(base_path: Path):
+def load_dlc_config(base_path: Path) -> DlcConfig:
     path = base_path / "dlc_config.json"
     if path.exists():
         return DlcConfig.model_validate_json(path.read_text())
@@ -59,7 +59,7 @@ def load_config(base_path: Path):
         return DlcConfig(version=0, downloaded={})
 
 
-def save_config(base_path: Path, config: DlcConfig):
+def save_dlc_config(base_path: Path, config: DlcConfig):
     path = base_path / "dlc_config.json"
     path.write_text(config.model_dump_json(indent=4))
 

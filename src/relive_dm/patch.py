@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def download_patch(entry_url: str, lang_id: int, base_path: Path):
-    config = load_config(base_path)
+    config = load_patch_config(base_path)
     max_iters = 100
     for _ in range(max_iters):
         r = httpx.get(
@@ -102,7 +102,7 @@ def download_patch(entry_url: str, lang_id: int, base_path: Path):
                 config.patch.patch_extra_localize_ver = (
                     download_list.patch_extra_localize[-1].version
                 )
-            save_config(base_path, config)
+            save_patch_config(base_path, config)
             return
         elif "information_news_url" in data:
             logger.info("No updates available")
@@ -113,7 +113,7 @@ def download_patch(entry_url: str, lang_id: int, base_path: Path):
     raise RuntimeError("Failed to download patch list")
 
 
-def load_config(base_path: Path):
+def load_patch_config(base_path: Path) -> PathConfig:
     path = base_path / "patch_config.json"
     if path.exists():
         return PathConfig.model_validate_json(path.read_text())
@@ -126,7 +126,7 @@ def load_config(base_path: Path):
         )
 
 
-def save_config(base_path: Path, config: PathConfig):
+def save_patch_config(base_path: Path, config: PathConfig):
     path = base_path / "patch_config.json"
     path.write_text(config.model_dump_json(indent=4))
 
