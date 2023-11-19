@@ -29,7 +29,7 @@ def download_dlc(entry_url: str, lang_id: int, base_path: Path):
         if category not in config.downloaded or entry not in config.downloaded[category]
     ]
 
-    download_zips(urls, base_path)
+    download_zips(urls, base_path, max_download_threads=16)
     logger.info(f"Downloaded {len(urls)} dlc entries")
 
     save_config(

@@ -80,7 +80,7 @@ def download_patch(entry_url: str, lang_id: int, base_path: Path):
                 for entry in download_list.patch_extra_localize
             )
 
-            download_zips(urls, base_path)
+            download_zips(urls, base_path, max_download_threads=-1)
             logger.info(f"Downloaded {len(urls)} patch entries")
             if download_list.patch_main:
                 config.patch.patch_main_id = download_list.patch_main[-1].id

@@ -47,22 +47,34 @@ def download_zip(url: str, base_path: Path, callback: Callable[[Path], None]):
 def download_zips(
     urls: Iterable[str],
     base_path: Path,
-    max_download_threads: int = 32,
-    max_processing_threads: int = None,
+    max_download_threads: int,
+    max_processing_threads: int | None = None,
 ):
     if max_processing_threads is None:
         max_processing_threads = multiprocessing.cpu_count()
-    with (
-        concurrent.futures.ThreadPoolExecutor(
-            max_workers=max_processing_threads
-        ) as processing_executor,
-        concurrent.futures.ThreadPoolExecutor(
-            max_workers=max_download_threads
-        ) as download_executor,
-    ):
+    if max_download_threads > 1:
+        with (
+            concurrent.futures.ThreadPoolExecutor(
+                max_workers=max_processing_threads
+            ) as processing_executor,
+            concurrent.futures.ThreadPoolExecutor(
+                max_workers=max_download_threads
+            ) as download_executor,
+        ):
 
-        def callback(path):
-            processing_executor.submit(process_file, path)
+            def callback(path: Path):
+                processing_executor.submit(process_file, path)
 
+            for url in urls:
+                download_executor.submit(download_zip, url, base_path, callback)
+    else:
+        # Ensure each zip is fully processed before moving on to the next one
         for url in urls:
-            download_executor.submit(download_zip, url, base_path, callback)
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=max_processing_threads
+            ) as processing_executor:
+
+                def callback(path: Path):
+                    processing_executor.submit(process_file, path)
+
+                download_zip(url, base_path, callback)
