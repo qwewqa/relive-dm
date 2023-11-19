@@ -60,7 +60,7 @@ def download_patch(entry_url: str, lang_id: int, base_path: Path):
             config.privacy_policy_ver = data["privacy_policy_ver"]
         elif "patch_server_url" in data:
             download_list = PatchDownloadList.model_validate(data)
-            logger.info(f"Downloaded patch list")
+            logger.info("Downloaded patch list")
 
             urls = []
             urls.extend(
@@ -105,7 +105,7 @@ def download_patch(entry_url: str, lang_id: int, base_path: Path):
             save_config(base_path, config)
             return
         elif "information_news_url" in data:
-            logger.info(f"No updates available")
+            logger.info("No updates available")
             return
         else:
             raise ValueError("Unknown response")

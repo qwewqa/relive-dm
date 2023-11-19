@@ -24,10 +24,17 @@ requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 [tool.pdm.dev-dependencies]
+dev = [
+    "pre-commit>=3.5.0",
+]
 lint = [
-    "black>=23.11.0",
-    "isort>=5.12.0",
+    "ruff>=0.1.6",
+    "pyright>=1.1.336",
 ]
 
-[tool.isort]
-profile = "black"
+[tool.ruff]
+target-version = "py310"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

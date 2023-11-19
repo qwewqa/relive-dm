@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, TypeAlias
+from typing import Any, TypeAlias, cast
 
 from relive_dm.lua import read_lua_table
 
@@ -63,11 +63,13 @@ def merge_all_masters(base_paths: list[Path], out_path: Path):
         raise ValueError("Must specify at least one base path.")
     primary, *others = [get_masters_path(base_path) for base_path in base_paths]
     for master_path in primary.glob("*.luac"):
-        data = read_lua_table(master_path.read_bytes())
+        data = cast(MasterDict, read_lua_table(master_path.read_bytes()))
         for other in others:
             other_path = other / master_path.name
             if other_path.exists():
-                data = merge_masters(data, read_lua_table(other_path.read_bytes()))
+                data = merge_masters(
+                    data, cast(MasterDict, read_lua_table(other_path.read_bytes()))
+                )
         data = convert_dicts_to_lists(data)
         out_path.mkdir(parents=True, exist_ok=True)
         (out_path / f"{master_path.stem}.json").write_text(

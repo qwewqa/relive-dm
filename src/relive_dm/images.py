@@ -1,9 +1,7 @@
 import gzip
 import logging
-import os
 import platform
 import shutil
-import struct
 import subprocess
 from io import BytesIO
 from pathlib import Path
@@ -55,8 +53,8 @@ def pvr_to_png(path: Path, remove_original: bool = True) -> Path | None:
                     path.unlink()
                 return
         except subprocess.TimeoutExpired:
-            logger.debug(f"pvr_to_png timed out, retrying")
-    logger.warning(f"pvr_to_png timed out, skipping")
+            logger.debug("pvr_to_png timed out, retrying")
+    logger.warning("pvr_to_png timed out, skipping")
     return None
 
 

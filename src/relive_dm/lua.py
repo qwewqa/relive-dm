@@ -46,8 +46,8 @@ def skip_header(bio: BytesIO):
 
 
 def get_prototype(bio: BytesIO) -> Prototype:
-    size = get_uleb128(bio)
-    flags = bio.read(1)[0]
+    _size = get_uleb128(bio)
+    _flags = bio.read(1)[0]
     argument_count = bio.read(1)[0]
     if argument_count > 0:
         raise NotImplementedError("Arguments are not supported")
@@ -108,13 +108,21 @@ class Prototype:
                 case 0x34:
                     slot[instr.a] = {}
                 case 0x35:
-                    slot[instr.a] = self.complex_constants[cc - instr.d].copy()
+                    value = self.complex_constants[cc - instr.d]
+                    assert isinstance(value, dict)
+                    slot[instr.a] = value.copy()
                 case 0x3C:
-                    slot[instr.b][slot[instr.c]] = slot[instr.a]
+                    target = slot[instr.b]
+                    assert isinstance(target, dict)
+                    target[slot[instr.c]] = slot[instr.a]
                 case 0x3D:
-                    slot[instr.b][self.complex_constants[cc - instr.c]] = slot[instr.a]
+                    target = slot[instr.b]
+                    assert isinstance(target, dict)
+                    target[self.complex_constants[cc - instr.c]] = slot[instr.a]
                 case 0x3E:
-                    slot[instr.b][instr.c] = slot[instr.a]
+                    target = slot[instr.b]
+                    assert isinstance(target, dict)
+                    target[instr.c] = slot[instr.a]
                 case 0x4C:
                     return slot[instr.a]
                 case _:

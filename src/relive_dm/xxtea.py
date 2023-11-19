@@ -3,18 +3,18 @@ import struct
 _DELTA = 0x9E3779B9
 
 
-def _long2str(v, w):
+def _long2str(v: list[int], w: bool) -> bytes:
     n = (len(v) - 1) << 2
     if w:
         m = v[-1]
         if (m < n - 3) or (m > n):
-            return ""
+            return b""
         n = m
     s = struct.pack("<%iL" % len(v), *v)
     return s[0:n] if w else s
 
 
-def _str2long(s, w):
+def _str2long(s: bytes, w: bool) -> list[int]:
     n = len(s)
     m = (4 - (n & 3) & 3) + n
     s = s.ljust(m, b"\0")
@@ -24,7 +24,7 @@ def _str2long(s, w):
     return v
 
 
-def encrypt_xxtea(data: bytes, key=b"j8onLz05ce37gmbA"):
+def encrypt_xxtea(data: bytes, key: bytes = b"j8onLz05ce37gmbA") -> bytes:
     if data == "":
         return data
     v = _str2long(data, True)
@@ -57,7 +57,7 @@ def encrypt_xxtea(data: bytes, key=b"j8onLz05ce37gmbA"):
     return _long2str(v, False)
 
 
-def decrypt_xxtea(data: bytes, key=b"j8onLz05ce37gmbA"):
+def decrypt_xxtea(data: bytes, key: bytes = b"j8onLz05ce37gmbA") -> bytes:
     if data == b"":
         return data
     v = _str2long(data, False)
@@ -89,7 +89,7 @@ def decrypt_xxtea(data: bytes, key=b"j8onLz05ce37gmbA"):
     return _long2str(v, True)
 
 
-def decrypt_xxtea_if_header(data: bytes, key=b"j8onLz05ce37gmbA") -> bytes:
+def decrypt_xxtea_if_header(data: bytes, key: bytes = b"j8onLz05ce37gmbA") -> bytes:
     if data.startswith(b"XXTEA"):
         return decrypt_xxtea(data[5:], key)
     else:
