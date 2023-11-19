@@ -18,6 +18,7 @@ def download_dlc(entry_url: str, lang_id: int, base_path: Path):
 
     info = get_dlc_info(entry_url, lang_id)
     if info.dlc_ver <= config.version:
+        logger.info("No new dlc, skipping")
         return
     download_list = download_dlc_list(info, lang_id)
     logger.info(f"Downloaded dlc list from {info.dlc_server_url}")
