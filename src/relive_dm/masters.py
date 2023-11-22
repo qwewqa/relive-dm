@@ -10,21 +10,25 @@ logger = logging.getLogger(__name__)
 MasterDict: TypeAlias = dict[int, dict[str, Any]]
 
 
-def merge_values(primary: Any, other: Any) -> Any:
-    if isinstance(primary, dict):
+def merge_values(primary: Any, other: Any, default_key="ja") -> Any:
+    if isinstance(primary, str) and isinstance(other, dict):
+        primary = {default_key: primary}
+    if isinstance(primary, dict) and isinstance(other, dict):
         for k, v in other.items():
             if k in primary:
-                primary[k] = merge_values(primary[k], v)
+                primary[k] = merge_values(primary[k], v, default_key)
             else:
                 primary[k] = v
         return primary
     return primary
 
 
-def merge_masters(primary: MasterDict, other: MasterDict) -> MasterDict:
+def merge_masters(
+    primary: MasterDict, other: MasterDict, default_key="ja"
+) -> MasterDict:
     for k, v in other.items():
         if k in primary:
-            primary[k] = merge_values(primary[k], v)
+            primary[k] = merge_values(primary[k], v, default_key)
         else:
             primary[k] = v
     return primary
@@ -62,8 +66,8 @@ def merge_all_masters(base_paths: list[Path], out_path: Path):
     if len(base_paths) == 0:
         raise ValueError("Must specify at least one base path.")
     primary, *others = [get_masters_path(base_path) for base_path in base_paths]
-    for master_path in primary.glob("*.luac"):
-        out_file = out_path / f"{master_path.stem}.json"
+    for master_path in primary.glob("**/*.luac"):
+        out_file = out_path / master_path.relative_to(primary).with_suffix(".json")
         if out_file.exists():
             lua_paths = [master_path] + [
                 other / master_path.relative_to(primary) for other in others
@@ -75,13 +79,13 @@ def merge_all_masters(base_paths: list[Path], out_path: Path):
                 continue
         data = cast(MasterDict, read_lua_table(master_path.read_bytes()))
         for other in others:
-            other_path = other / master_path.name
+            other_path = other / master_path.relative_to(primary)
             if other_path.exists():
                 data = merge_masters(
                     data, cast(MasterDict, read_lua_table(other_path.read_bytes()))
                 )
         data = convert_dicts_to_lists(data)
-        out_path.mkdir(parents=True, exist_ok=True)
+        out_file.parent.mkdir(parents=True, exist_ok=True)
         out_file.write_text(
             json.dumps(data, ensure_ascii=False, indent=4, sort_keys=True),
             encoding="utf-8",
