@@ -3,6 +3,9 @@ import logging
 from pathlib import Path
 from typing import Any, TypeAlias, cast
 
+import msgpack
+import yaml
+
 from relive_dm.lua import read_lua_table
 
 logger = logging.getLogger(__name__)
@@ -68,7 +71,15 @@ def merge_all_masters(base_paths: list[Path], out_path: Path):
     primary, *others = [get_masters_path(base_path) for base_path in base_paths]
     for master_path in primary.glob("**/*.luac"):
         out_file = out_path / master_path.relative_to(primary).with_suffix(".json")
-        if out_file.exists():
+        out_file_yaml = (
+            out_path / "yaml" / master_path.relative_to(primary).with_suffix(".yaml")
+        )
+        out_file_msgpack = (
+            out_path
+            / "msgpack"
+            / master_path.relative_to(primary).with_suffix(".msgpack")
+        )
+        if out_file.exists() and 0:
             lua_paths = [master_path] + [
                 other / master_path.relative_to(primary) for other in others
             ]
@@ -89,6 +100,15 @@ def merge_all_masters(base_paths: list[Path], out_path: Path):
         out_file.write_text(
             json.dumps(data, ensure_ascii=False, indent=4, sort_keys=True),
             encoding="utf-8",
+        )
+        out_file_yaml.parent.mkdir(parents=True, exist_ok=True)
+        out_file_yaml.write_text(
+            yaml.dump(data, allow_unicode=True, sort_keys=True),
+            encoding="utf-8",
+        )
+        out_file_msgpack.parent.mkdir(parents=True, exist_ok=True)
+        out_file_msgpack.write_bytes(
+            msgpack.packb(data),  # type: ignore
         )
         logger.info(f"Updated {master_path}")
     logger.info(f"Merged masters to {out_path}")

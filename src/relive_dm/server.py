@@ -27,6 +27,16 @@ servers = [
         entry_url="https://ep.ww.revuestarlight-relive.com/",
         lang_id=2,
     ),
+    # ServerInfo(
+    #     name="ww_hant",
+    #     entry_url="https://ep.ww.revuestarlight-relive.com/",
+    #     lang_id=6,
+    # ),
+    # ServerInfo(
+    #     name="ww_ko",
+    #     entry_url="https://ep.ww.revuestarlight-relive.com/",
+    #     lang_id=9,
+    # ),
 ]
 
 

@@ -38,7 +38,7 @@ def wav_to_opus(path: Path) -> Path | None:
         return None
 
 
-def process_ckb(path: Path, remove_original: bool = True) -> Path | None:
+def process_ckb(path: Path, remove_original: bool = False) -> Path | None:
     match platform.system():
         case "Windows":
             executable = Path(__file__).parent / "external" / "cktool.exe"

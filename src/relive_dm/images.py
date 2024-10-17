@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 logger = logging.getLogger(__name__)
 
 
-def pvr_to_png(path: Path, remove_original: bool = True) -> Path | None:
+def pvr_to_png(path: Path, remove_original: bool = False) -> Path | None:
     out_path = path.with_suffix(".png")
     match platform.system():
         case "Windows":
@@ -55,6 +55,49 @@ def pvr_to_png(path: Path, remove_original: bool = True) -> Path | None:
         except subprocess.TimeoutExpired:
             logger.debug("pvr_to_png timed out, retrying")
     logger.warning("pvr_to_png timed out, skipping")
+    return None
+
+
+def png_to_pvr(path: Path, remove_original: bool = False) -> Path | None:
+    out_path = path.with_suffix(".pvr")
+    match platform.system():
+        case "Windows":
+            executable = Path(__file__).parent / "external" / "PVRTexToolCLI.exe"
+        case "Linux":
+            executable = Path(__file__).parent / "external" / "PVRTexToolCLI"
+        case _:
+            logger.warning("png_to_pvr is not supported on this platform, skipping")
+            return None
+    for _ in range(3):
+        try:
+            # Sometimes this seems to hang, so there's a timeout
+            return_code = subprocess.call(
+                [
+                    f"{executable}",
+                    "-f",
+                    "BC3",
+                    "-q",
+                    "pvrtcbest",
+                    "-o",
+                    out_path,
+                    "-i",
+                    f"{path}",
+                ],
+                timeout=60,
+            )
+            if return_code != 0:
+                logger.warning(
+                    f"png_to_pvr failed with return code {return_code}, skipping"
+                )
+                return None
+            else:
+                logger.info(f"Converted {path} to {out_path}")
+                if remove_original:
+                    path.unlink()
+                return
+        except subprocess.TimeoutExpired:
+            logger.debug("png_to_pvr timed out, retrying")
+    logger.warning("png_to_pvr timed out, skipping")
     return None
 
 
@@ -105,7 +148,7 @@ ivs = [
 ]
 
 
-def process_pvr(path: Path, remove_original: bool = True) -> Path | None:
+def process_pvr(path: Path, remove_original: bool = False) -> Path | None:
     with path.open("rb+") as f:
         data = f.read()
         if not data:

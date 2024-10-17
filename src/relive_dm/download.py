@@ -5,6 +5,7 @@ import multiprocessing
 import zipfile
 from pathlib import Path
 from typing import Callable, Iterable
+from urllib.parse import urlparse
 
 import httpx
 
@@ -33,6 +34,10 @@ def download_zip(url: str, base_path: Path, callback: Callable[[Path], None]):
     r = httpx.get(url)
     r.raise_for_status()
     logger.info(f"Downloaded {url}")
+    parsed_url = urlparse(url)
+    zip_path = base_path / "raw" / parsed_url.path.lstrip("/")
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
+    zip_path.write_bytes(r.content)
     with zipfile.ZipFile(io.BytesIO(r.content)) as z:
         for info in z.infolist():
             if info.is_dir():
